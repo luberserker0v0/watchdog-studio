@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://watchdog.local/schemas/watchdog-pipeline.schema.json",
+  "title": "WatchDog Pipeline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["instances"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "instances": {
+      "type": "object",
+      "description": "Runtime node instances and their ordered Next/Error routing.",
+      "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$" },
+      "additionalProperties": { "$ref": "#/$defs/instance" }
+    }
+  },
+  "$defs": {
+    "nodeId": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$" },
+    "milliseconds": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "freezeWait": {
+      "oneOf": [
+        { "type": "integer", "minimum": 0, "maximum": 30000 },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["time"],
+          "properties": {
+            "time": { "type": "integer", "minimum": 0, "maximum": 30000 },
+            "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+            "rate_limit": { "type": "integer", "minimum": 1, "maximum": 5000 },
+            "timeout": { "type": "integer", "minimum": 1, "maximum": 120000 },
+            "roi": {
+              "type": "array",
+              "prefixItems": [
+                { "type": "integer", "minimum": 0 },
+                { "type": "integer", "minimum": 0 },
+                { "type": "integer", "minimum": 1 },
+                { "type": "integer", "minimum": 1 }
+              ],
+              "items": false,
+              "minItems": 4,
+              "maxItems": 4
+            }
+          }
+        }
+      ]
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "key", "label"],
+      "properties": {
+        "type": { "enum": ["text", "password", "number", "dropdown", "switch", "color"] },
+        "key": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "placeholder": { "type": "string" },
+        "default": true,
+        "options": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "instance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node"],
+      "properties": {
+        "node": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1, "description": "User-facing Node Name. Routing continues to use the instance object key." },
+        "next": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nodeId" },
+          "uniqueItems": true
+        },
+        "error": { "$ref": "#/$defs/nodeId" },
+        "params": { "type": "array", "items": { "$ref": "#/$defs/parameter" } },
+        "param_values": { "type": "object" },
+        "kind": { "enum": ["Normal", "Entry", "Endpoint"] },
+        "desc": { "type": "string" },
+        "timeout": { "$ref": "#/$defs/milliseconds" },
+        "error_timeout": { "$ref": "#/$defs/milliseconds" },
+        "rate_limit": { "$ref": "#/$defs/milliseconds" },
+        "pre_delay": { "$ref": "#/$defs/milliseconds" },
+        "pre_wait_freezes": { "$ref": "#/$defs/freezeWait" },
+        "post_delay": { "$ref": "#/$defs/milliseconds" },
+        "post_wait_freezes": { "$ref": "#/$defs/freezeWait" },
+        "enabled": { "type": "boolean" },
+        "inverse": { "type": "boolean" },
+        "max_hit": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "repeat": { "type": "integer", "minimum": 1, "maximum": 4294967295 },
+        "repeat_delay": { "$ref": "#/$defs/milliseconds" }
+      }
+    }
+  }
+}

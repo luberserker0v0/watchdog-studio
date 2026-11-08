@@ -1,0 +1,114 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #162034;
+  background: #edf1f7;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; overflow: hidden; }
+body { margin: 0; min-width: 720px; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .45; }
+
+.studio-shell { display: grid; grid-template-rows: 62px minmax(0, 1fr); height: 100%; }
+.studio-header {
+  position: relative;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 62px;
+  padding: 10px 18px;
+  color: #f7f9fc;
+  background: #111827;
+  border-bottom: 2px solid #2f6df6;
+}
+.studio-brand h1 { margin: 1px 0 0; font-size: 20px; }
+.studio-eyebrow { color: #84a8ff; font-size: 9px; font-weight: 800; letter-spacing: .18em; }
+.studio-workspace { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.header-actions { display: flex; overflow: visible; border: 1px solid #3a475d; border-radius: 7px; }
+.header-actions button {
+  min-width: 38px;
+  height: 34px;
+  padding: 0 10px;
+  color: #e8eef9;
+  background: #202b3e;
+  border: 0;
+  border-right: 1px solid #3a475d;
+}
+.header-actions button:hover { background: #2d3a51; }
+.header-menu { position: relative; }
+.header-menu > button { border-right: 0; }
+.header-menu-popover {
+  position: absolute;
+  top: 39px;
+  right: 0;
+  z-index: 120;
+  min-width: 150px;
+  padding: 5px;
+  background: #fff;
+  border: 1px solid #ccd5e4;
+  border-radius: 7px;
+  box-shadow: 0 12px 30px rgb(17 24 39 / 22%);
+}
+.header-menu-popover button { width: 100%; color: #25344d; text-align: left; background: #fff; border: 0; }
+.header-menu-popover hr { margin: 5px 2px; border: 0; border-top: 1px solid #dce3ee; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  padding: 36px;
+  background: rgb(12 18 30 / 52%);
+  place-items: center;
+}
+.about-modal, .source-modal {
+  width: min(520px, 100%);
+  padding: 22px;
+  color: #162034;
+  background: #fff;
+  border: 1px solid #d7deea;
+  border-radius: 12px;
+  box-shadow: 0 24px 70px rgb(8 14 25 / 30%);
+}
+.about-modal header, .source-modal header { display: flex; align-items: start; justify-content: space-between; }
+.about-modal h2, .source-modal h2 { margin: 4px 0 0; }
+.about-modal header span, .source-modal header span { color: #69768b; font-size: 11px; }
+.about-modal header button, .source-modal header button { color: #45546c; background: transparent; border: 0; font-size: 24px; }
+.source-modal { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: min(980px, 100%); height: min(760px, 90vh); }
+.source-modal textarea {
+  min-height: 0;
+  margin: 16px 0;
+  padding: 14px;
+  color: #dbe6ff;
+  background: #111827;
+  border: 1px solid #344057;
+  border-radius: 7px;
+  resize: none;
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.source-modal footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.source-modal footer p { margin: 0; color: #69768b; font-size: 12px; }
+.source-modal footer div { display: flex; gap: 8px; }
+.source-modal footer button { padding: 8px 12px; border: 1px solid #cbd4e2; border-radius: 6px; }
+.source-modal footer .primary { color: #fff; background: #2f6df6; border-color: #2f6df6; }
+
+.project-launcher {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: min(620px, calc(100% - 40px));
+  padding: 36px;
+  background: #fff;
+  border: 1px solid #d8dfeb;
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgb(25 39 70 / 10%);
+  transform: translate(-50%, -50%);
+}
+.project-launcher h2 { margin: 12px 0 8px; font-size: 30px; }
+.project-launcher p { color: #5c687d; }
+.project-launcher button { padding: 10px 16px; color: #fff; background: #2f6df6; border: 0; border-radius: 7px; }
+.welcome-badge { color: #2459c4; font-size: 12px; font-weight: 750; text-transform: uppercase; }

@@ -1,0 +1,1563 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "watchdog-metadata.schema.json",
+  "title": "WatchDog Metadata",
+  "description": "Pipeline target, launch settings, and reusable node definitions. Runtime bindings live in the adjacent .pipeline.json file; the node tester also consumes standalone definitions.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Supported value: string containing a JSON Schema URI. Default: omitted. VS Code already associates every *.meta.json file through .vscode/settings.json.",
+      "markdownDescription": "**Supported value**\n\nstring containing a JSON Schema URI.\n\n**Default:** omitted.\n\nVS Code already associates every *.meta.json file through .vscode/settings.json."
+    },
+    "target": {
+      "title": "Default capture target",
+      "description": "Supported values: null | screen target object | window target object. This target is inherited by nodes that do not define their own target. A filterless window target inherits the active window stream. Default: null, which requires an already-active stream for pipeline execution.",
+      "default": null,
+      "oneOf": [
+        {
+          "$ref": "#/$defs/captureTarget",
+          "description": "Supported values: null | screen target object | window target object. Selected object: use that screen or window as the metadata default target.",
+          "markdownDescription": "**Supported values**\n\nnull | screen target object | window target object.\n\n**Selected object:** use that screen or window as the metadata default target."
+        },
+        {
+          "type": "null",
+          "description": "Supported values: null | screen target object | window target object. Selected null: do not resolve a metadata target; reuse an active stream. Default: null.",
+          "markdownDescription": "**Supported values**\n\nnull | screen target object | window target object.\n\n**Selected null:** do not resolve a metadata target; reuse an active stream.\n\n**Default:** null."
+        }
+      ],
+      "markdownDescription": "**Supported values**\n\nnull | screen target object | window target object.\n\nThis target is inherited by nodes that do not define their own target. A filterless window target inherits the active window stream.\n\n**Default:** null, which requires an already-active stream for pipeline execution."
+    },
+    "launch": {
+      "title": "External process launch configuration",
+      "description": "Supported values: launch configuration object or null. Specifies an external process to start before pipeline execution. Default: null (no process launched).",
+      "default": null,
+      "oneOf": [
+        {
+          "$ref": "#/$defs/launchConfig",
+          "description": "Supported value: launch configuration object specifying an external process to start.",
+          "markdownDescription": "**Launch configuration object**\n\nSpecifies an external process to start before pipeline execution."
+        },
+        {
+          "type": "null",
+          "description": "Supported values: launch configuration object or null. Selected null: do not launch any process. Default: null.",
+          "markdownDescription": "**Supported values**\n\nlaunch configuration object or null.\n\n**Selected null:** do not launch any process.\n\n**Default:** null."
+        }
+      ],
+      "markdownDescription": "**Supported values**\n\nlaunch configuration object or null.\n\nSpecifies an external process to start before pipeline execution.\n\n**Default:** null (no process launched)."
+    },
+    "nodes": {
+      "type": "object",
+      "description": "Supported value: reusable node definitions keyed by definition name. Pipeline instance IDs bind to definitions in the adjacent .pipeline.json file. Default: empty object.",
+      "additionalProperties": {
+        "$ref": "#/$defs/nodeMetadata",
+        "description": "Configuration for the pipeline definition named by this object key."
+      },
+      "default": {},
+      "markdownDescription": "**Supported value**\n\nReusable node definitions keyed by definition name. Pipeline instance IDs bind to these definitions in the adjacent `.pipeline.json` file.\n\n**Default:** an empty object."
+    }
+  },
+  "required": ["nodes"],
+  "$defs": {
+    "signedInteger": { "type": "integer", "minimum": -2147483648, "maximum": 2147483647, "description": "A signed 32-bit integer from -2147483648 through 2147483647." },
+    "unsignedInteger": { "type": "integer", "minimum": 0, "maximum": 4294967295, "description": "An unsigned 32-bit integer from 0 through 4294967295." },
+    "launchConfig": {
+      "title": "External process launch configuration",
+      "description": "Supported value: launch configuration object specifying an external process to start before pipeline execution.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exe": {
+          "type": "string",
+          "description": "Supported value: string path to executable. Mutually exclusive with cmd.",
+          "markdownDescription": "**Supported value**\n\nstring path to executable.\n\nMutually exclusive with `cmd`."
+        },
+        "cmd": {
+          "type": "string",
+          "description": "Supported value: string command to run. Mutually exclusive with exe.",
+          "markdownDescription": "**Supported value**\n\nstring command to run.\n\nMutually exclusive with `exe`."
+        },
+        "args": {
+          "type": "array",
+          "items": { "type": "string", "description": "Supported value: string argument passed unchanged to the launched executable or command.", "markdownDescription": "**Supported value**\n\nstring argument passed unchanged to the launched executable or command." },
+          "default": [],
+          "description": "Supported value: array of string arguments for the executable or command. Default: empty array.",
+          "markdownDescription": "**Supported value**\n\narray of string arguments for the executable or command.\n\n**Default:** empty array."
+        },
+        "shell": {
+          "type": "boolean",
+          "default": false,
+          "description": "Supported values: true | false. If true, run command in shell (cmd.exe /C on Windows). Only applies when using cmd. Default: false.",
+          "markdownDescription": "**Supported values**\n\ntrue | false.\n\nIf true, run command in shell (`cmd.exe /C` on Windows). Only applies when using `cmd`.\n\n**Default:** false."
+        },
+        "cwd": {
+          "type": "string",
+          "description": "Supported value: string working directory for the process. Default: omitted (inherits current directory).",
+          "markdownDescription": "**Supported value**\n\nstring working directory for the process.\n\n**Default:** omitted (inherits current directory)."
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "default": {},
+          "description": "Supported value: object whose keys are environment variable names and whose values are strings. These variables are added to the process environment. Default: empty object.",
+          "markdownDescription": "**Supported value**\n\nobject whose keys are environment variable names and whose values are strings.\n\nThese variables are added to the process environment.\n\n**Default:** empty object."
+        },
+        "wait_for_window": {
+          "type": "boolean",
+          "default": false,
+          "description": "Supported values: true | false. If true, wait for a window matching the pipeline target to appear after launching. Default: false.",
+          "markdownDescription": "**Supported values**\n\ntrue | false.\n\nIf true, wait for a window matching the pipeline target to appear after launching.\n\n**Default:** false."
+        },
+        "wait_timeout_ms": {
+          "$ref": "#/$defs/milliseconds",
+          "description": "Supported value: non-negative integer milliseconds to wait for window. Default: 10000.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer in milliseconds to wait for window.\n\n**Default:** 10000."
+        }
+      },
+      "markdownDescription": "**Supported value**\n\nlaunch configuration object specifying an external process to start before pipeline execution."
+    },
+    "milliseconds": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Supported value: non-negative integer duration in milliseconds.",
+      "markdownDescription": "**Supported value**\n\nnon-negative integer duration in milliseconds."
+    },
+    "freezeWait": {
+      "description": "Wait for consecutive visually stable frames before or after actions. Zero disables the wait.",
+      "oneOf": [
+        { "type": "integer", "minimum": 0, "maximum": 30000, "description": "Supported value: stable milliseconds; zero disables the wait.", "markdownDescription": "**Supported value**\n\nStable milliseconds from 0 to 30000; zero disables the wait." },
+        {
+          "type": "object",
+          "description": "Supported value: object with time and optional comparison settings.",
+          "markdownDescription": "**Supported value**\n\nObject with time, threshold, rate limit, timeout, and optional capture-local ROI.",
+          "additionalProperties": false,
+          "required": ["time"],
+          "properties": {
+            "time": { "type": "integer", "minimum": 0, "maximum": 30000, "description": "Supported value: stable duration in milliseconds, 0..30000; zero disables the wait.", "markdownDescription": "**Supported value**\n\nStable duration in milliseconds, 0..30000; zero disables the wait." },
+            "threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.98, "description": "Supported value: normalized frame similarity from 0 to 1. Default: 0.98.", "markdownDescription": "**Supported value**\n\nNormalized frame similarity from 0 to 1. **Default:** 0.98." },
+            "rate_limit": { "type": "integer", "minimum": 1, "maximum": 5000, "default": 200, "description": "Supported value: minimum milliseconds between compared frames, 1..5000. Default: 200.", "markdownDescription": "**Supported value**\n\nMinimum milliseconds between compared frames, 1..5000. **Default:** 200." },
+            "timeout": { "type": "integer", "minimum": 1, "maximum": 120000, "default": 10000, "description": "Supported value: maximum active wait milliseconds, 1..120000 and at least time. Default: 10000.", "markdownDescription": "**Supported value**\n\nMaximum active wait milliseconds, 1..120000 and at least time. **Default:** 10000." },
+            "roi": { "type": "array", "prefixItems": [ { "type": "integer", "minimum": 0, "description": "Capture-local left coordinate." }, { "type": "integer", "minimum": 0, "description": "Capture-local top coordinate." }, { "type": "integer", "minimum": 1, "description": "Comparison width in pixels." }, { "type": "integer", "minimum": 1, "description": "Comparison height in pixels." } ], "items": false, "minItems": 4, "maxItems": 4, "description": "Supported value: optional capture-local [x,y,width,height] comparison area.", "markdownDescription": "**Supported value**\n\nOptional capture-local `[x,y,width,height]` comparison area." }
+          }
+        }
+      ]
+    },
+    "point": {
+      "type": "array",
+      "description": "Supported action-target forms: true | string | [integer, integer] | [integer, integer, integer, integer]. This value is the [x,y] fixed capture-local point form.",
+      "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed capture-local point\n- `[x, y, width, height]` — fixed capture-local area\n\n**Selected form:** `[x, y]`  \n**Default:** `true`",
+      "prefixItems": [
+        { "$ref": "#/$defs/signedInteger", "title": "x", "description": "Horizontal coordinate in captured-image pixels, measured from the left edge." },
+        { "$ref": "#/$defs/signedInteger", "title": "y", "description": "Vertical coordinate in captured-image pixels, measured from the top edge." }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "region": {
+      "type": "array",
+      "description": "Supported action-target forms: true | string | [integer, integer] | [integer, integer, integer, integer]. This value is the [x,y,width,height] fixed capture-local area form; width and height must be non-negative.",
+      "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed capture-local point\n- `[x, y, width, height]` — fixed capture-local area\n\n**Selected form:** `[x, y, width, height]`; width and height must be non-negative.  \n**Default:** `true`",
+      "prefixItems": [
+        { "$ref": "#/$defs/signedInteger", "title": "x", "description": "Horizontal coordinate of the rectangle's top-left corner in captured-image pixels." },
+        { "$ref": "#/$defs/signedInteger", "title": "y", "description": "Vertical coordinate of the rectangle's top-left corner in captured-image pixels." },
+        { "type": "integer", "minimum": 0, "maximum": 2147483647, "title": "width", "description": "Rectangle width in captured-image pixels." },
+        { "type": "integer", "minimum": 0, "maximum": 2147483647, "title": "height", "description": "Rectangle height in captured-image pixels." }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "roi": {
+      "description": "Supported types and values: array of four integers [x, y, width, height] in capture-local pixels; or string pipeline instance ID such as \"Find-Panel\". Default: [0, 0, 0, 0] (whole frame). Other arrays need positive width and height. A string requires an earlier matched node with a box on the same window/monitor; its box is mapped into this frame before roi_offset. Independent single-node tests cannot resolve it.",
+      "default": [0, 0, 0, 0],
+      "examples": [[0, 0, 0, 0], [20, 30, 300, 180], "Find-Panel"],
+      "oneOf": [
+        { "type": "array", "description": "Supported types and values for roi: array of four integers [x,y,width,height] in capture-local pixels OR string pipeline instance ID such as \"Find-Panel\". Selected type: array. Default: [0,0,0,0] (whole frame); other arrays need positive width and height.", "markdownDescription": "**All supported ROI types**\n\n- **Array of four integers:** `[x,y,width,height]` in capture-local pixels (**selected type**).\n- **String:** `\"Find-Panel\"` — earlier matched pipeline instance's box on the same target.\n\n**Default:** `[0,0,0,0]` means the full frame. Other arrays need positive width and height.", "prefixItems": [
+          { "$ref": "#/$defs/signedInteger", "title": "x", "description": "Horizontal start of the recognition area in captured-image pixels." },
+          { "$ref": "#/$defs/signedInteger", "title": "y", "description": "Vertical start of the recognition area in captured-image pixels." },
+          { "type": "integer", "minimum": 0, "maximum": 2147483647, "title": "width", "description": "Recognition-area width in captured-image pixels. Must be positive unless all four ROI values are zero." },
+          { "type": "integer", "minimum": 0, "maximum": 2147483647, "title": "height", "description": "Recognition-area height in captured-image pixels. Must be positive unless all four ROI values are zero." }
+        ], "items": false, "minItems": 4, "maxItems": 4 },
+        { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$", "description": "Supported types and values for roi: array of four integers [x,y,width,height] in capture-local pixels OR string pipeline instance ID such as \"Find-Panel\". Selected type: string. The node must have matched earlier on the same target, exist, and not reference itself. Default: [0,0,0,0] (whole frame).", "markdownDescription": "**All supported ROI types**\n\n- **Array of four integers:** `[x,y,width,height]` in capture-local pixels.\n- **String:** `\"Find-Panel\"` — earlier matched pipeline instance's box on the same target (**selected type**).\n\nThe box is mapped into the current frame before `roi_offset`. Self-references and unknown IDs are invalid. **Default:** `[0,0,0,0]`." }
+      ],
+      "markdownDescription": "**All supported ROI types**\n\n- **Array of four integers:** `[x,y,width,height]` in capture-local pixels. Width/height must be positive except for `[0,0,0,0]`.\n- **String pipeline instance ID:** `\"Find-Panel\"` — an earlier matched pipeline instance's box on the same window or monitor, mapped into this frame.\n\n**Default:** `[0,0,0,0]` — complete encoded frame.\n\n`roi_offset` adds to x, y, width, and height **after** either source resolves. Partially overlapping ROIs are clipped; missing boxes, other targets, and empty or non-overlapping ROIs fail immediately. Independent single-node tests cannot resolve earlier-node references."
+    },
+    "regionOffset": {
+      "type": "array",
+      "description": "Supported value: [integer, integer, integer, integer] offset in [x, y, width, height] form, added to the source region. Default: [0, 0, 0, 0].",
+      "default": [0, 0, 0, 0],
+      "prefixItems": [
+        { "$ref": "#/$defs/signedInteger", "title": "x offset", "description": "Pixels added to the source region's x coordinate." },
+        { "$ref": "#/$defs/signedInteger", "title": "y offset", "description": "Pixels added to the source region's y coordinate." },
+        { "$ref": "#/$defs/signedInteger", "title": "width offset", "description": "Pixels added to the source region's width." },
+        { "$ref": "#/$defs/signedInteger", "title": "height offset", "description": "Pixels added to the source region's height." }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4,
+      "markdownDescription": "**Supported value**\n\n[integer, integer, integer, integer] offset in [x, y, width, height] form, added to the source region.\n\n**Default:** [0, 0, 0, 0]."
+    },
+    "rgb": {
+      "type": "array",
+      "description": "Supported value: [integer, integer, integer] in [red, green, blue] form, with each channel from 0 to 255.",
+      "prefixItems": [
+        { "type": "integer", "minimum": 0, "maximum": 255, "title": "red", "description": "Red channel intensity from 0 through 255." },
+        { "type": "integer", "minimum": 0, "maximum": 255, "title": "green", "description": "Green channel intensity from 0 through 255." },
+        { "type": "integer", "minimum": 0, "maximum": 255, "title": "blue", "description": "Blue channel intensity from 0 through 255." }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3,
+      "markdownDescription": "**Supported value**\n\n[integer, integer, integer] in [red, green, blue] form, with each channel from 0 to 255."
+    },
+    "captureTarget": {
+      "title": "Capture target",
+      "description": "Supported values: {type:\"screen\", index?:integer} | {type:\"window\", process?:string, class?:string, title?:string, capture_area?:\"frame\"|\"client\", window_size?:[positive integer, positive integer]}. Chooses the capture source.",
+      "oneOf": [
+        {
+          "title": "Screen",
+          "description": "Supported capture-target forms: {type:\"screen\", index?:integer} | {type:\"window\", process?:string, class?:string, title?:string, capture_area?:\"frame\"|\"client\", window_size?:[positive integer,positive integer]}. This value selects a physical monitor; index is the capture API position, not a Windows display number.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "screen",
+              "description": "Supported values for capture target type: screen | window. Selected: screen, which captures the monitor at index. No default target type.",
+              "markdownDescription": "**Supported capture target types**\n\n- `screen` — capture a monitor by `index`\n- `window` — capture a matched window\n\n**Selected:** `screen` — capture the monitor at `index`.\n\n**Default:** none."
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "description": "Supported value: non-negative integer screen index returned by the capture API. Default: 0.",
+              "markdownDescription": "**Supported value**\n\nnon-negative integer screen index returned by the capture API.\n\n**Default:** 0."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported capture-target forms**\n\n{type:\"screen\", index?:integer} | {type:\"window\", process?:string, class?:string, title?:string, capture_area?:\"frame\"|\"client\", window_size?:[positive integer,positive integer]}.\n\nThis value selects a physical monitor; index is the capture API position, not a Windows display number."
+        },
+        {
+          "title": "Window",
+          "description": "Supported capture-target forms: {type:\"screen\", index?:integer} | {type:\"window\", process?:string, class?:string, title?:string, capture_area?:\"frame\"|\"client\", window_size?:[positive integer,positive integer]}. This value selects a window. Supplied process/class/title regular expressions are combined with AND; omitting all filters inherits the active window.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "window",
+              "description": "Supported values for capture target type: screen | window. Selected: window, which captures a window matched by process, class, or title. No default target type.",
+              "markdownDescription": "**Supported capture target types**\n\n- `screen` — capture a monitor by `index`\n- `window` — capture a matched window\n\n**Selected:** `window` — capture a window matched by `process`, `class`, or `title`.\n\n**Default:** none."
+            },
+            "process": {
+              "type": "string",
+              "description": "Supported value: string containing a Rust regular expression matched against the executable process name. Default: omitted. Combined with class and title using AND.",
+              "markdownDescription": "**Supported value**\n\nstring containing a Rust regular expression matched against the executable process name.\n\n**Default:** omitted.\n\nCombined with class and title using AND."
+            },
+            "class": {
+              "type": "string",
+              "description": "Supported value: string containing a Rust regular expression matched against the native window class. Default: omitted. Combined with process and title using AND.",
+              "markdownDescription": "**Supported value**\n\nstring containing a Rust regular expression matched against the native window class.\n\n**Default:** omitted.\n\nCombined with process and title using AND."
+            },
+            "title": {
+              "type": "string",
+              "description": "Supported value: string containing a Rust regular expression matched against the window title. Default: omitted. Use ^...$ for an exact title; combined with process and class using AND.",
+              "markdownDescription": "**Supported value**\n\nstring containing a Rust regular expression matched against the window title.\n\n**Default:** omitted.\n\nUse ^...$ for an exact title; combined with process and class using AND."
+            },
+            "capture_area": {
+              "type": "string",
+              "oneOf": [
+                {
+                  "const": "frame",
+                  "description": "Supported values: \"frame\" | \"client\". Selected \"frame\": capture DWM window bounds including title bar, borders, and client content. Default: \"frame\".",
+                  "markdownDescription": "**Supported values**\n\n\"frame\" | \"client\".\n\n**Selected \"frame\":** capture DWM window bounds including title bar, borders, and client content.\n\n**Default:** \"frame\"."
+                },
+                {
+                  "const": "client",
+                  "description": "Supported values: \"frame\" | \"client\". Selected \"client\": capture only drawable client content, excluding title bar and non-client borders. Default: \"frame\".",
+                  "markdownDescription": "**Supported values**\n\n\"frame\" | \"client\".\n\n**Selected \"client\":** capture only drawable client content, excluding title bar and non-client borders.\n\n**Default:** \"frame\"."
+                }
+              ],
+              "default": "frame",
+              "description": "Supported values: \"frame\" | \"client\". frame captures complete DWM bounds including borders and title bar; client captures only client content. Default: \"frame\".",
+              "markdownDescription": "**Supported values**\n\n\"frame\" | \"client\". frame captures complete DWM bounds including borders and title bar; client captures only client content.\n\n**Default:** \"frame\"."
+            },
+            "window_size": {
+              "type": "array",
+              "description": "Supported value: [positive integer, positive integer] in [width, height] form. This is the expected client/content size in physical capture pixels, independent of capture_area. On the top-level target, WatchDog tries to resize and verifies within two pixels. Default: omitted, so no size preflight occurs.",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295,
+                  "title": "client width",
+                  "description": "Required client/content width in physical capture pixels; must be positive.",
+                  "markdownDescription": "**Supported value**\n\nInteger from `1` through `4294967295`, measured in physical capture pixels.\n\n**Required:** yes  \n**Default:** none"
+                },
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295,
+                  "title": "client height",
+                  "description": "Required client/content height in physical capture pixels; must be positive.",
+                  "markdownDescription": "**Supported value**\n\nInteger from `1` through `4294967295`, measured in physical capture pixels.\n\n**Required:** yes  \n**Default:** none"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2,
+              "examples": [
+                [
+                  1280,
+                  720
+                ]
+              ],
+              "markdownDescription": "**Supported value**\n\n[positive integer, positive integer] in [width, height] form.\n\nThis is the expected client/content size in physical capture pixels, independent of capture_area.\n\nOn the top-level target, WatchDog tries to resize and verifies within two pixels.\n\n**Default:** omitted, so no size preflight occurs."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported capture-target forms**\n\n{type:\"screen\", index?:integer} | {type:\"window\", process?:string, class?:string, title?:string, capture_area?:\"frame\"|\"client\", window_size?:[positive integer,positive integer]}.\n\nThis value selects a window.\n\nSupplied process/class/title regular expressions are combined with AND; omitting all filters inherits the active window."
+        }
+      ],
+      "markdownDescription": "**Supported values**\n\n{type:\"screen\", index?:integer} | {type:\"window\", process?:string, class?:string, title?:string, capture_area?:\"frame\"|\"client\", window_size?:[positive integer, positive integer]}.\n\nChooses the capture source."
+    },
+    "candidateSelection": {
+      "title": "Recognition candidate selection",
+      "description": "Supported value: object {order?: CandidateOrder, index?: non-negative integer}. Sorts all eligible recognizer results and selects one zero-based candidate. Supported by TemplateMatch, OCR, and Custom; ignored by DirectHit and ColorMatch. Default: {\"order\":\"native\",\"index\":0}.",
+      "type": "object",
+      "default": { "order": "native", "index": 0 },
+      "additionalProperties": false,
+      "properties": {
+        "order": {
+          "type": "string",
+          "oneOf": [
+            {
+              "const": "native",
+              "description": "Supported values: native | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc. Selected native: keep recognizer order. Default: native.",
+              "markdownDescription": "**Supported values**\n\nnative | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc.\n\n**Selected native:** keep recognizer order.\n\n**Default:** native."
+            },
+            {
+              "const": "top_to_bottom",
+              "description": "Supported values: native | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc. Selected top_to_bottom: center y ascending, then center x, then detection index. Default: native.",
+              "markdownDescription": "**Supported values**\n\nnative | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc.\n\n**Selected top_to_bottom:** center y ascending, then center x, then detection index.\n\n**Default:** native."
+            },
+            {
+              "const": "bottom_to_top",
+              "description": "Supported values: native | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc. Selected bottom_to_top: center y descending, then center x, then detection index. Default: native.",
+              "markdownDescription": "**Supported values**\n\nnative | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc.\n\n**Selected bottom_to_top:** center y descending, then center x, then detection index.\n\n**Default:** native."
+            },
+            {
+              "const": "left_to_right",
+              "description": "Supported values: native | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc. Selected left_to_right: center x ascending, then center y, then detection index. Default: native.",
+              "markdownDescription": "**Supported values**\n\nnative | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc.\n\n**Selected left_to_right:** center x ascending, then center y, then detection index.\n\n**Default:** native."
+            },
+            {
+              "const": "right_to_left",
+              "description": "Supported values: native | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc. Selected right_to_left: center x descending, then center y, then detection index. Default: native.",
+              "markdownDescription": "**Supported values**\n\nnative | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc.\n\n**Selected right_to_left:** center x descending, then center y, then detection index.\n\n**Default:** native."
+            },
+            {
+              "const": "confidence_desc",
+              "description": "Supported values: native | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc. Selected confidence_desc: confidence descending, then detection index. Default: native.",
+              "markdownDescription": "**Supported values**\n\nnative | top_to_bottom | bottom_to_top | left_to_right | right_to_left | confidence_desc.\n\n**Selected confidence_desc:** confidence descending, then detection index.\n\n**Default:** native."
+            }
+          ],
+          "default": "native",
+          "description": "Supported values: \"native\" | \"top_to_bottom\" | \"bottom_to_top\" | \"left_to_right\" | \"right_to_left\" | \"confidence_desc\". Determines sorting before index selection. Default: \"native\".",
+          "markdownDescription": "**Supported values**\n\n\"native\" | \"top_to_bottom\" | \"bottom_to_top\" | \"left_to_right\" | \"right_to_left\" | \"confidence_desc\".\n\nDetermines sorting before index selection.\n\n**Default:** \"native\"."
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Supported value: non-negative integer. Zero-based candidate index after sorting. Default: 0.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer.\n\nZero-based candidate index after sorting.\n\n**Default:** 0."
+        }
+      },
+      "markdownDescription": "**Supported value**\n\nobject {order?: CandidateOrder, index?: non-negative integer}.\n\nSorts all eligible recognizer results and selects one zero-based candidate.\n\nSupported by TemplateMatch, OCR, and Custom; ignored by DirectHit and ColorMatch.\n\n**Default:** {\"order\":\"native\",\"index\":0}."
+    },
+    "compositeOperand": {
+      "title": "Composite recognition operand",
+      "description": "Supported values: a non-empty pipeline node ID or an inline recognition object. Every operand uses the same captured frame.",
+      "markdownDescription": "**Supported values**\n\n- non-empty pipeline node ID\n- inline recognition object\n\nEvery operand uses the same captured frame.",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "description": "Supported value: non-empty pipeline node ID whose recognition configuration is evaluated against the same frame.",
+          "markdownDescription": "**Supported value**\n\nNon-empty pipeline node ID evaluated against the same frame."
+        },
+        {
+          "type": "object",
+          "required": ["type"],
+          "description": "Supported value: inline WatchDog recognition object or Maa v2 recognition object with fields nested below param. Optional sub_name exposes its selected box to a later inline operand ROI.",
+          "markdownDescription": "**Supported value**\n\nInline WatchDog recognition object or Maa v2 recognition object. `sub_name` exposes its selected box to a later inline operand ROI.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Supported value: recognition type name.",
+              "markdownDescription": "**Supported value**\n\nRecognition type name."
+            },
+            "param": {
+              "type": "object",
+              "description": "Supported value: Maa v2 recognition parameters.",
+              "markdownDescription": "**Supported value**\n\nMaa v2 recognition parameters."
+            },
+            "sub_name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Supported value: alias for this operand's selected result inside the current composite recognition.",
+              "markdownDescription": "**Supported value**\n\nAlias for this operand's selected result inside the current composite recognition."
+            }
+          }
+        }
+      ]
+    },
+    "recognition": {
+      "title": "Recognition",
+      "description": "Supported object types: DirectHit | TemplateMatch | OCR | ColorMatch | And | Or | Custom. Determines whether the node matches and may provide a detected box used by actions. roi, roi_offset, and candidate_selection belong inside this object. Default at node level: {\"type\":\"DirectHit\"}.",
+      "default": {
+        "type": "DirectHit"
+      },
+      "oneOf": [
+        {
+          "title": "Direct hit",
+          "description": "Supported recognition types: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected DirectHit: always matches; useful with a fixed action target. Node default: DirectHit.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "DirectHit",
+              "description": "Supported values for recognition type: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected: DirectHit, which always matches and returns the effective ROI as its box. Node default: DirectHit.",
+              "markdownDescription": "**Supported recognition types**\n\n- `DirectHit` — always match\n- `TemplateMatch` — locate an image template\n- `OCR` — recognize and filter text\n- `ColorMatch` — match an RGB range\n- `Custom` — invoke a registered recognizer\n\n**Selected:** `DirectHit` — always matches and returns the effective ROI as its box.\n\n**Node default:** `DirectHit`."
+            },
+            "roi": {
+              "$ref": "#/$defs/roi",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported values: [x,y,width,height] in capture-local pixels OR an earlier pipeline instance ID (e.g. \"Find-Panel\"). The earlier node must have a matched box on the same target. roi_offset applies after resolving either form. DirectHit returns the effective ROI as its box. Default: [0,0,0,0], the whole frame.",
+              "markdownDescription": "**Supported values**\n\n- `[x,y,width,height]` in captured-image pixels\n- `\"Find-Panel\"` for an earlier successful recognition box on the same target\n\n`roi_offset` applies after resolution. DirectHit returns the effective ROI as its box. **Default:** `[0,0,0,0]`, the whole frame."
+            },
+            "roi_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [x_offset,y_offset,width_offset,height_offset] signed pixels, added to the fixed ROI or mapped earlier-node box before clipping. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n`[dx,dy,dwidth,dheight]` signed captured-image pixels. Add each component to the fixed ROI or mapped earlier-node box **before clipping**.\n\n**Default:** `[0,0,0,0]`."
+            },
+            "candidate_selection": {
+              "$ref": "#/$defs/candidateSelection",
+              "default": {
+                "order": "native",
+                "index": 0
+              },
+              "description": "Supported value: {order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}. Default: native order and index 0. DirectHit ignores this field.",
+              "markdownDescription": "**Supported value**\n\n{order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}.\n\n**Default:** native order and index 0.\n\nDirectHit ignores this field."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported recognition types**\n\nDirectHit | TemplateMatch | OCR | ColorMatch | Custom.\n\n**Selected DirectHit:** always matches; useful with a fixed action target.\n\n**Node default:** DirectHit."
+        },
+        {
+          "title": "Template match",
+          "description": "Supported recognition types: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected TemplateMatch: find template-similar regions, filter by threshold, merge overlapping pixel-shift detections, then sort and select a distinct candidate.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "TemplateMatch",
+              "description": "Supported values for recognition type: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected: TemplateMatch, which locates regions similar to the configured template. Node default: DirectHit.",
+              "markdownDescription": "**Supported recognition types**\n\n- `DirectHit` — always match\n- `TemplateMatch` — locate an image template\n- `OCR` — recognize and filter text\n- `ColorMatch` — match an RGB range\n- `Custom` — invoke a registered recognizer\n\n**Selected:** `TemplateMatch` — locate regions similar to the configured template.\n\n**Node default:** `DirectHit`."
+            },
+            "template": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Supported value: non-empty image-path string. Required; no default. Absolute paths are used directly. Relative paths first check %USERPROFILE%/.watch_dog/resources/images and then bundled resources/images.",
+              "markdownDescription": "**Supported value**\n\nnon-empty image-path string.\n\n**Required:** yes  \n**Default:** none.\n\nAbsolute paths are used directly.\n\nRelative paths first check %USERPROFILE%/.watch_dog/resources/images and then bundled resources/images."
+            },
+            "threshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.7,
+              "description": "Supported value: number from 0 through 1. Minimum normalized template-match confidence. Default: 0.7.",
+              "markdownDescription": "**Supported value**\n\nnumber from 0 through 1.\n\nMinimum normalized template-match confidence.\n\n**Default:** 0.7."
+            },
+            "roi": {
+              "$ref": "#/$defs/roi",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported values: [x,y,width,height] in capture-local pixels OR an earlier pipeline instance ID (e.g. \"Find-Panel\") with a matched box on the same target. roi_offset applies after resolution. Default: [0,0,0,0], search the whole frame.",
+              "markdownDescription": "**Supported values**\n\n- `[x,y,width,height]` in captured-image pixels\n- `\"Find-Panel\"` for an earlier successful recognition box on the same target\n\n`roi_offset` applies after resolution. **Default:** `[0,0,0,0]`, search the whole frame."
+            },
+            "roi_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [x_offset,y_offset,width_offset,height_offset] signed pixels, added to the fixed ROI or mapped earlier-node box before clipping. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n`[dx,dy,dwidth,dheight]` signed captured-image pixels. Add each component to the fixed ROI or mapped earlier-node box **before clipping**.\n\n**Default:** `[0,0,0,0]`."
+            },
+            "candidate_selection": {
+              "$ref": "#/$defs/candidateSelection",
+              "default": {
+                "order": "native",
+                "index": 0
+              },
+              "description": "Supported value: {order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}. Sorts and selects one eligible template candidate. Default: native order and index 0.",
+              "markdownDescription": "**Supported value**\n\n{order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}.\n\nSorts and selects one eligible template candidate.\n\n**Default:** native order and index 0."
+            }
+          },
+          "required": [
+            "type",
+            "template"
+          ],
+          "markdownDescription": "**Supported recognition types**\n\nDirectHit | TemplateMatch | OCR | ColorMatch | Custom.\n\n**Selected TemplateMatch:** find template-similar regions, filter by threshold, merge overlapping pixel-shift detections, then sort and select a distinct candidate. `candidate_selection.index` addresses this consolidated list."
+        },
+        {
+          "title": "OCR",
+          "description": "Supported recognition types: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected OCR: recognize text blocks, filter by confidence and optional expected regex, then sort and select a block.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "OCR",
+              "description": "Supported values for recognition type: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected: OCR, which recognizes text and filters it by expected regex and confidence. Node default: DirectHit.",
+              "markdownDescription": "**Supported recognition types**\n\n- `DirectHit` — always match\n- `TemplateMatch` — locate an image template\n- `OCR` — recognize and filter text\n- `ColorMatch` — match an RGB range\n- `Custom` — invoke a registered recognizer\n\n**Selected:** `OCR` — recognize text and filter it by `expected` regex and confidence.\n\n**Node default:** `DirectHit`."
+            },
+            "expected": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "Supported value: one Rust regular expression string.",
+                  "markdownDescription": "**Supported value**\n\nOne Rust regular expression string."
+                },
+                {
+                  "type": "array",
+                  "description": "Supported value: non-empty ordered array of Rust regular expression strings; index 0 is tested first.",
+                  "markdownDescription": "**Supported value**\n\nA non-empty ordered array of Rust regular expression strings. Index 0 is tested first.",
+                  "items": {
+                    "type": "string",
+                    "description": "Supported value: one Rust regular expression string in the ordered expected list.",
+                    "markdownDescription": "**Supported value**\n\nOne Rust regular expression string in the ordered expected list."
+                  },
+                  "minItems": 1
+                }
+              ],
+              "description": "Supported value: one Rust regular expression string or a non-empty ordered array of regex strings. Array entries are tested from index 0 and the first entry producing a match succeeds. Unanchored patterns search by substring; use ^...$ for an exact match. Literal spaces tolerate spaces omitted by OCR. Default: omitted, which accepts any text passing the confidence threshold.",
+              "markdownDescription": "**Supported values**\n\n- one Rust regular expression string; or\n- a non-empty ordered array of regular expression strings.\n\nArray entries are tested from index 0. The first entry producing a match succeeds and later entries are not evaluated. Unanchored patterns search by substring; use ^...$ for an exact match. Literal spaces tolerate spaces omitted by OCR.\n\n**Default:** omitted, which accepts any text passing the confidence threshold."
+            },
+            "threshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.3,
+              "description": "Supported value: number from 0 through 1. Minimum OCR confidence. Default: 0.3.",
+              "markdownDescription": "**Supported value**\n\nnumber from 0 through 1.\n\nMinimum OCR confidence.\n\n**Default:** 0.3."
+            },
+            "roi": {
+              "$ref": "#/$defs/roi",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported values: [x,y,width,height] in capture-local pixels OR an earlier pipeline instance ID (e.g. \"Find-Panel\") with a matched box on the same target. roi_offset applies after resolution. Default: [0,0,0,0], submit the whole frame to OCR.",
+              "markdownDescription": "**Supported values**\n\n- `[x,y,width,height]` in captured-image pixels\n- `\"Find-Panel\"` for an earlier successful recognition box on the same target\n\n`roi_offset` applies after resolution. **Default:** `[0,0,0,0]`, submit the whole frame to OCR."
+            },
+            "roi_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [x_offset,y_offset,width_offset,height_offset] signed pixels, added to the fixed ROI or mapped earlier-node box before clipping. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n`[dx,dy,dwidth,dheight]` signed captured-image pixels. Add each component to the fixed ROI or mapped earlier-node box **before clipping**.\n\n**Default:** `[0,0,0,0]`."
+            },
+            "candidate_selection": {
+              "$ref": "#/$defs/candidateSelection",
+              "default": {
+                "order": "native",
+                "index": 0
+              },
+              "description": "Supported value: {order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}. Selects one OCR block after filtering. Default: native order and index 0.",
+              "markdownDescription": "**Supported value**\n\n{order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}.\n\nSelects one OCR block after filtering.\n\n**Default:** native order and index 0."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported recognition types**\n\nDirectHit | TemplateMatch | OCR | ColorMatch | Custom.\n\n**Selected OCR:** recognize text blocks, filter by confidence and optional expected regex, then sort and select a block."
+        },
+        {
+          "title": "Color match",
+          "description": "Supported recognition types: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected ColorMatch: match pixels inside the ROI against an inclusive RGB range; the recognized box is the effective ROI.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "ColorMatch",
+              "description": "Supported values for recognition type: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected: ColorMatch, which matches pixels inside the ROI against an inclusive RGB range. Node default: DirectHit.",
+              "markdownDescription": "**Supported recognition types**\n\n- `DirectHit` — always match\n- `TemplateMatch` — locate an image template\n- `OCR` — recognize and filter text\n- `ColorMatch` — match an RGB range\n- `Custom` — invoke a registered recognizer\n\n**Selected:** `ColorMatch` — match pixels inside the ROI against an inclusive RGB range.\n\n**Node default:** `DirectHit`."
+            },
+            "lower": {
+              "$ref": "#/$defs/rgb",
+              "description": "Supported value: [integer, integer, integer] RGB channels from 0 to 255. Required; no default. Inclusive lower RGB bound.",
+              "markdownDescription": "**Supported value**\n\n[integer, integer, integer] RGB channels from 0 to 255.\n\n**Required:** yes  \n**Default:** none.\n\nInclusive lower RGB bound."
+            },
+            "upper": {
+              "$ref": "#/$defs/rgb",
+              "description": "Supported value: [integer, integer, integer] RGB channels from 0 to 255. Required; no default. Inclusive upper RGB bound.",
+              "markdownDescription": "**Supported value**\n\n[integer, integer, integer] RGB channels from 0 to 255.\n\n**Required:** yes  \n**Default:** none.\n\nInclusive upper RGB bound."
+            },
+            "roi": {
+              "$ref": "#/$defs/roi",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported values: [x,y,width,height] in capture-local pixels OR an earlier pipeline instance ID (e.g. \"Find-Panel\") with a matched box on the same target. roi_offset applies after resolution. Default: [0,0,0,0], check the whole frame.",
+              "markdownDescription": "**Supported values**\n\n- `[x,y,width,height]` in captured-image pixels\n- `\"Find-Panel\"` for an earlier successful recognition box on the same target\n\n`roi_offset` applies after resolution. **Default:** `[0,0,0,0]`, check the whole frame."
+            },
+            "roi_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [x_offset,y_offset,width_offset,height_offset] signed pixels, added to the fixed ROI or mapped earlier-node box before clipping. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n`[dx,dy,dwidth,dheight]` signed captured-image pixels. Add each component to the fixed ROI or mapped earlier-node box **before clipping**.\n\n**Default:** `[0,0,0,0]`."
+            },
+            "candidate_selection": {
+              "$ref": "#/$defs/candidateSelection",
+              "default": {
+                "order": "native",
+                "index": 0
+              },
+              "description": "Supported value: {order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}. Default: native order and index 0. ColorMatch ignores this field.",
+              "markdownDescription": "**Supported value**\n\n{order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}.\n\n**Default:** native order and index 0.\n\nColorMatch ignores this field."
+            }
+          },
+          "required": [
+            "type",
+            "lower",
+            "upper"
+          ],
+          "markdownDescription": "**Supported recognition types**\n\nDirectHit | TemplateMatch | OCR | ColorMatch | Custom.\n\n**Selected ColorMatch:** match pixels inside the ROI against an inclusive RGB range; the recognized box is the effective ROI."
+        },
+        {
+          "title": "Logical AND",
+          "description": "Supported recognition type And: evaluate every all_of operand against the same frame; match only when all operands match.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "And",
+              "description": "Supported value: And, a same-frame logical conjunction.",
+              "markdownDescription": "**Supported value**\n\n`And`, a same-frame logical conjunction."
+            },
+            "param": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["all_of"],
+              "description": "Supported value: Maa-compatible And parameters.",
+              "markdownDescription": "**Supported value**\n\nMaa-compatible `And` parameters.",
+              "properties": {
+                "all_of": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "$ref": "#/$defs/compositeOperand", "description": "Supported value: node reference or inline recognition operand.", "markdownDescription": "**Supported value**\n\nNode reference or inline recognition operand." },
+                  "description": "Supported value: non-empty ordered list of node references or inline recognitions; every item must match.",
+                  "markdownDescription": "**Supported value**\n\nNon-empty ordered list of node references or inline recognitions; every item must match."
+                },
+                "box_index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 0,
+                  "description": "Supported value: zero-based all_of index whose selected box and text become the composite result. Default: 0.",
+                  "markdownDescription": "**Supported value**\n\nZero-based `all_of` output index.\n\n**Default:** `0`."
+                }
+              }
+            },
+            "roi": {
+              "$ref": "#/$defs/roi",
+              "description": "Supported values: fixed capture-local rectangle or earlier pipeline instance ID. Used as the parent ROI for inline operands that omit roi.",
+              "markdownDescription": "**Supported values**\n\nFixed capture-local rectangle or earlier matched pipeline instance ID. Used as the parent ROI for inline operands."
+            },
+            "roi_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "description": "Supported value: signed offset applied to the fixed ROI or mapped earlier-node box.",
+              "markdownDescription": "**Supported value**\n\nSigned offset applied to the fixed ROI or mapped earlier-node box."
+            },
+            "candidate_selection": {
+              "$ref": "#/$defs/candidateSelection",
+              "description": "Supported value: candidate-selection object accepted for structural compatibility; And uses param.box_index to select its output operand.",
+              "markdownDescription": "**Supported value**\n\nCandidate-selection object. `And` uses `param.box_index` for its output operand."
+            }
+          },
+          "required": ["type", "param"],
+          "markdownDescription": "**Supported recognition**\n\n`And` evaluates every `param.all_of` operand on the same frame and uses `param.box_index` as its output."
+        },
+        {
+          "title": "Logical OR",
+          "description": "Supported recognition type Or: evaluate any_of operands against the same frame in order and stop at the first match.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "Or",
+              "description": "Supported value: Or, a short-circuiting same-frame logical disjunction.",
+              "markdownDescription": "**Supported value**\n\n`Or`, a short-circuiting same-frame logical disjunction."
+            },
+            "param": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["any_of"],
+              "description": "Supported value: Maa-compatible Or parameters.",
+              "markdownDescription": "**Supported value**\n\nMaa-compatible `Or` parameters.",
+              "properties": {
+                "any_of": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "$ref": "#/$defs/compositeOperand", "description": "Supported value: node reference or inline recognition operand.", "markdownDescription": "**Supported value**\n\nNode reference or inline recognition operand." },
+                  "description": "Supported value: non-empty ordered list of node references or inline recognitions; evaluation stops at the first match.",
+                  "markdownDescription": "**Supported value**\n\nNon-empty ordered list; evaluation stops at the first matching operand."
+                }
+              }
+            },
+            "roi": {
+              "$ref": "#/$defs/roi",
+              "description": "Supported values: fixed capture-local rectangle or earlier pipeline instance ID. Used as the parent ROI for inline operands that omit roi.",
+              "markdownDescription": "**Supported values**\n\nFixed capture-local rectangle or earlier matched pipeline instance ID. Used as the parent ROI for inline operands."
+            },
+            "roi_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "description": "Supported value: signed offset applied to the fixed ROI or mapped earlier-node box.",
+              "markdownDescription": "**Supported value**\n\nSigned offset applied to the fixed ROI or mapped earlier-node box."
+            },
+            "candidate_selection": {
+              "$ref": "#/$defs/candidateSelection",
+              "description": "Supported value: candidate-selection object accepted for structural compatibility; Or returns the first matching operand.",
+              "markdownDescription": "**Supported value**\n\nCandidate-selection object. `Or` returns the first matching operand."
+            }
+          },
+          "required": ["type", "param"],
+          "markdownDescription": "**Supported recognition**\n\n`Or` evaluates `param.any_of` on the same frame and stops at the first match."
+        },
+        {
+          "title": "Custom recognizer",
+          "description": "Supported recognition types: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected Custom: invoke a registered recognizer named by Maa-compatible param.custom_recognition or the legacy recognition field.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "Custom",
+              "description": "Supported values for recognition type: DirectHit | TemplateMatch | OCR | ColorMatch | Custom. Selected: Custom, which invokes the registered recognizer named by param.custom_recognition or the legacy recognition field. Node default: DirectHit.",
+              "markdownDescription": "**Supported recognition types**\n\n- `DirectHit` — always match\n- `TemplateMatch` — locate an image template\n- `OCR` — recognize and filter text\n- `ColorMatch` — match an RGB range\n- `Custom` — invoke a registered recognizer\n\n**Selected:** `Custom` — invoke the registered recognizer named by `param.custom_recognition`; legacy metadata may use `recognition`.\n\n**Node default:** `DirectHit`."
+            },
+            "recognition": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Supported value: non-empty registered recognizer-name string. Required; no default.",
+              "markdownDescription": "**Supported value**\n\nnon-empty registered recognizer-name string.\n\n**Required:** yes  \n**Default:** none."
+            },
+            "param": {
+              "default": null,
+              "description": "Supported values: Maa-compatible object containing custom_recognition and optional custom_recognition_param, or any legacy WatchDog JSON value paired with the top-level recognition field. Default: null.",
+              "markdownDescription": "**Supported values**\n\nMaa-compatible `{ custom_recognition: string, custom_recognition_param?: any }`, or any legacy WatchDog JSON value paired with the top-level `recognition` field.\n\n**Default:** `null`."
+            },
+            "roi": {
+              "$ref": "#/$defs/roi",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported values: [x,y,width,height] in capture-local pixels OR an earlier pipeline instance ID (e.g. \"Find-Panel\") with a matched box on the same target. roi_offset applies after resolution. Default: [0,0,0,0], pass the whole frame to the custom recognizer.",
+              "markdownDescription": "**Supported values**\n\n- `[x,y,width,height]` in captured-image pixels\n- `\"Find-Panel\"` for an earlier successful recognition box on the same target\n\n`roi_offset` applies after resolution. **Default:** `[0,0,0,0]`, pass the whole frame to the custom recognizer."
+            },
+            "roi_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [x_offset,y_offset,width_offset,height_offset] signed pixels, added to the fixed ROI or mapped earlier-node box before clipping. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n`[dx,dy,dwidth,dheight]` signed captured-image pixels. Add each component to the fixed ROI or mapped earlier-node box **before clipping**.\n\n**Default:** `[0,0,0,0]`."
+            },
+            "candidate_selection": {
+              "$ref": "#/$defs/candidateSelection",
+              "default": {
+                "order": "native",
+                "index": 0
+              },
+              "description": "Supported value: {order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}. Selects a custom candidate. Default: native order and index 0.",
+              "markdownDescription": "**Supported value**\n\n{order?: \"native\"|\"top_to_bottom\"|\"bottom_to_top\"|\"left_to_right\"|\"right_to_left\"|\"confidence_desc\", index?: non-negative integer}.\n\nSelects a custom candidate.\n\n**Default:** native order and index 0."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "anyOf": [
+            {
+              "required": ["recognition"]
+            },
+            {
+              "required": ["param"],
+              "properties": {
+                "param": {
+                  "type": "object",
+                  "description": "Supported value: Maa-compatible Custom recognition object containing a registered recognizer name and optional recognizer-specific parameter. Required when the legacy recognition field is omitted.",
+                  "markdownDescription": "**Supported value**\n\n`{ custom_recognition: string, custom_recognition_param?: any }`.\n\n**Required:** when the legacy `recognition` field is omitted.",
+                  "required": ["custom_recognition"],
+                  "properties": {
+                    "custom_recognition": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Supported value: non-empty recognizer name registered by a WatchDog Agent. Required; no default.",
+                      "markdownDescription": "**Supported value**\n\nNon-empty recognizer name registered by a WatchDog Agent.\n\n**Required:** yes  \n**Default:** none."
+                    },
+                    "custom_recognition_param": {
+                      "description": "Supported value: any JSON value accepted by the named recognizer. Optional; default is null.",
+                      "markdownDescription": "**Supported value**\n\nAny JSON value accepted by the named recognizer.\n\n**Default:** `null`."
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "markdownDescription": "**Supported recognition types**\n\nDirectHit | TemplateMatch | OCR | ColorMatch | Custom.\n\n**Selected Custom:** invoke a registered recognizer named by `param.custom_recognition` with recognizer-specific JSON parameters; legacy metadata may use `recognition`."
+        }
+      ],
+      "markdownDescription": "**Supported recognition types**\n\n- `DirectHit` — always matches\n- `TemplateMatch` — matches an image template\n- `OCR` — recognizes text\n- `ColorMatch` — matches an RGB range\n- `Custom` — invokes a registered recognizer\n\n**Default recognition type:** `DirectHit`"
+    },
+    "actionTarget": {
+      "title": "Action target",
+      "description": "Supported value forms: true | string | [integer, integer] | [integer, integer, integer, integer]. true uses the current recognized box; a string references a node's recognized box; [x,y] is a fixed capture-local point; [x,y,width,height] is a fixed capture-local area. Default: true. Actions execute at the resolved area's center. After offsets, that action point must remain inside the encoded frame; unsafe points fail instead of being clamped or executed.",
+      "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed capture-local point\n- `[x, y, width, height]` — fixed capture-local area\n\n**Default:** `true`\n\nActions execute at the resolved area's center. After offsets, the resulting action point must remain inside the encoded frame. Out-of-bounds points fail; they are never silently clamped. `false` is not usable.",
+      "oneOf": [
+        { "const": true, "title": "Recognized box", "description": "Supported action-target forms: true | string | [integer, integer] | [integer, integer, integer, integer]. Selected true: use the current node's recognized box; the action starts at its center after applying the offset. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed capture-local point\n- `[x, y, width, height]` — fixed capture-local area\n\n**Selected:** `true` — use the current recognized box; the action starts at its center after applying the offset.  \n**Default:** `true`" },
+        { "type": "string", "minLength": 1, "title": "Node ID", "description": "Supported action-target forms: true | string | [integer, integer] | [integer, integer, integer, integer]. Selected string: use the recognized box saved under that node ID. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed capture-local point\n- `[x, y, width, height]` — fixed capture-local area\n\n**Selected:** node-ID string — use the recognized box saved by that node.  \n**Default:** `true`" },
+        { "$ref": "#/$defs/point", "description": "Supported action-target forms: true | string | [integer, integer] | [integer, integer, integer, integer]. Selected [x,y]: use a fixed capture-local point. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed capture-local point\n- `[x, y, width, height]` — fixed capture-local area\n\n**Selected:** `[x, y]` — fixed capture-local point.  \n**Default:** `true`" },
+        { "$ref": "#/$defs/region", "description": "Supported action-target forms: true | string | [integer, integer] | [integer, integer, integer, integer]. Selected [x,y,width,height]: use a fixed capture-local area and start at its center. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed capture-local point\n- `[x, y, width, height]` — fixed capture-local area\n\n**Selected:** `[x, y, width, height]` — fixed area; the action starts at its center.  \n**Default:** `true`" }
+      ],
+      "default": true,
+      "examples": [true, "RecognizeButton", [500, 300], [100, 200, 400, 300]]
+    },
+    "action": {
+      "title": "Action",
+      "description": "Supported object types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Default action type: DoNothing. Actions execute in array order after a match; target-based actions map capture-local coordinates to physical screen coordinates.",
+      "default": {
+        "type": "DoNothing"
+      },
+      "oneOf": [
+        {
+          "title": "Do nothing",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected DoNothing: perform no input.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "DoNothing",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: DoNothing, which performs no input. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `DoNothing` — perform no input.\n\n**Default:** `DoNothing`."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected DoNothing:** perform no input."
+        },
+        {
+          "title": "Wait",
+          "description": "Supported action type Wait: wait for a fixed duration before continuing to the next action. Pipeline waits are cancellable and pause-aware.",
+          "markdownDescription": "**Supported action type**\n\n`Wait` pauses for `duration` milliseconds before continuing. Pipeline waits are cancellable and pause-aware.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "Wait",
+              "description": "Supported value: Wait. Select the Wait action.",
+              "markdownDescription": "**Supported value**\n\n`Wait`"
+            },
+            "duration": {
+              "$ref": "#/$defs/milliseconds",
+              "description": "Supported value: required non-negative wait duration in milliseconds.",
+              "markdownDescription": "**Supported value**\n\nRequired non-negative wait duration in milliseconds."
+            }
+          },
+          "required": [
+            "type",
+            "duration"
+          ]
+        },
+        {
+          "title": "Click",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected Click: click the resolved target center after target_offset.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "Click",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: Click, which clicks the resolved target center. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `Click` — click the resolved target center.\n\n**Default:** `DoNothing`."
+            },
+            "target": { "$ref": "#/$defs/actionTarget", "default": true, "description": "Click target. Supported value forms: true | string | [integer, integer] | [integer, integer, integer, integer]. true uses the current recognized box; string references a node ID; [x,y] is a fixed point; [x,y,width,height] is a fixed area. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed point\n- `[x, y, width, height]` — fixed area\n\n**Default:** `true`" },
+            "target_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [integer, integer, integer, integer] in [x,y,width,height] offset form. Added to the resolved target before its center is clicked. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n[integer, integer, integer, integer] in [x,y,width,height] offset form.\n\nAdded to the resolved target before its center is clicked.\n\n**Default:** [0,0,0,0]."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected Click:** click the resolved target center after target_offset."
+        },
+        {
+          "title": "Long press",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected LongPress: hold the resolved target center for duration milliseconds.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "LongPress",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: LongPress, which holds the resolved target center. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `LongPress` — hold the resolved target center.\n\n**Default:** `DoNothing`."
+            },
+            "target": { "$ref": "#/$defs/actionTarget", "default": true, "description": "Long-press target. Supported value forms: true | string | [integer, integer] | [integer, integer, integer, integer]. true uses the current recognized box; string references a node ID; [x,y] is a fixed point; [x,y,width,height] is a fixed area. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed point\n- `[x, y, width, height]` — fixed area\n\n**Default:** `true`" },
+            "target_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [integer, integer, integer, integer] in [x,y,width,height] offset form. Added before pressing the target center. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n[integer, integer, integer, integer] in [x,y,width,height] offset form.\n\nAdded before pressing the target center.\n\n**Default:** [0,0,0,0]."
+            },
+            "duration": {
+              "$ref": "#/$defs/milliseconds",
+              "default": 1000,
+              "description": "Supported value: non-negative integer hold duration in milliseconds. Default: 1000.",
+              "markdownDescription": "**Supported value**\n\nnon-negative integer hold duration in milliseconds.\n\n**Default:** 1000."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected LongPress:** hold the resolved target center for duration milliseconds."
+        },
+        {
+          "title": "Swipe",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected Swipe: drag from begin center to end center over duration milliseconds.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "Swipe",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: Swipe, which drags from the resolved begin center to the end center. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `Swipe` — drag from the resolved `begin` center to the `end` center.\n\n**Default:** `DoNothing`."
+            },
+            "begin": { "$ref": "#/$defs/actionTarget", "default": true, "description": "Swipe start target. Supported value forms: true | string | [integer, integer] | [integer, integer, integer, integer]. true uses the current recognized box; string references a node ID; [x,y] is a fixed point; [x,y,width,height] is a fixed area. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed point\n- `[x, y, width, height]` — fixed area\n\n**Default:** `true`" },
+            "begin_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [integer, integer, integer, integer] in [x,y,width,height] offset form. Added before resolving the swipe start center. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n[integer, integer, integer, integer] in [x,y,width,height] offset form.\n\nAdded before resolving the swipe start center.\n\n**Default:** [0,0,0,0]."
+            },
+            "end": { "$ref": "#/$defs/actionTarget", "default": true, "description": "Swipe end target. Supported value forms: true | string | [integer, integer] | [integer, integer, integer, integer]. true uses the current recognized box; string references a node ID; [x,y] is a fixed point; [x,y,width,height] is a fixed area. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed point\n- `[x, y, width, height]` — fixed area\n\n**Default:** `true`" },
+            "end_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [integer, integer, integer, integer] in [x,y,width,height] offset form. Added before resolving the swipe destination center. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n[integer, integer, integer, integer] in [x,y,width,height] offset form.\n\nAdded before resolving the swipe destination center.\n\n**Default:** [0,0,0,0]."
+            },
+            "duration": {
+              "$ref": "#/$defs/milliseconds",
+              "default": 200,
+              "description": "Supported value: non-negative integer swipe duration in milliseconds. Default: 200.",
+              "markdownDescription": "**Supported value**\n\nnon-negative integer swipe duration in milliseconds.\n\n**Default:** 200."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected Swipe:** drag from begin center to end center over duration milliseconds."
+        },
+        {
+          "title": "Scroll",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected Scroll: move to the target, then emit dx/dy wheel deltas.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "Scroll",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: Scroll, which emits wheel deltas at the resolved target. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `Scroll` — emit wheel deltas at the resolved target.\n\n**Default:** `DoNothing`."
+            },
+            "target": { "$ref": "#/$defs/actionTarget", "default": true, "description": "Scroll target. Supported value forms: true | string | [integer, integer] | [integer, integer, integer, integer]. true uses the current recognized box; string references a node ID; [x,y] is a fixed point; [x,y,width,height] is a fixed area. Default: true.", "markdownDescription": "**Supported action targets**\n\n- `true` — current recognized box\n- `\"NodeId\"` — saved box from another node\n- `[x, y]` — fixed point\n- `[x, y, width, height]` — fixed area\n\n**Default:** `true`" },
+            "target_offset": {
+              "$ref": "#/$defs/regionOffset",
+              "default": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "description": "Supported value: [integer, integer, integer, integer] in [x,y,width,height] offset form. Added before moving to the target center. Default: [0,0,0,0].",
+              "markdownDescription": "**Supported value**\n\n[integer, integer, integer, integer] in [x,y,width,height] offset form.\n\nAdded before moving to the target center.\n\n**Default:** [0,0,0,0]."
+            },
+            "dx": {
+              "$ref": "#/$defs/signedInteger",
+              "default": 0,
+              "description": "Supported value: signed 32-bit integer horizontal wheel delta. Positive scrolls right; negative scrolls left. Default: 0.",
+              "markdownDescription": "**Supported value**\n\nsigned 32-bit integer horizontal wheel delta.\n\nPositive scrolls right; negative scrolls left.\n\n**Default:** 0."
+            },
+            "dy": {
+              "$ref": "#/$defs/signedInteger",
+              "default": 0,
+              "description": "Supported value: signed 32-bit integer vertical wheel delta. Positive scrolls down; negative scrolls up. Default: 0.",
+              "markdownDescription": "**Supported value**\n\nsigned 32-bit integer vertical wheel delta.\n\nPositive scrolls down; negative scrolls up.\n\n**Default:** 0."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected Scroll:** move to the target, then emit dx/dy wheel deltas."
+        },
+        {
+          "title": "Press keyboard key",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected ClickKey: press native platform key codes in listed order.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "ClickKey",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: ClickKey, which presses native key codes. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `ClickKey` — press native key codes.\n\n**Default:** `DoNothing`."
+            },
+            "key": {
+              "type": "array",
+            "items": {
+                "description": "Supported values: unsigned 32-bit native key code OR string parameter placeholder such as \"{{key}}\".",
+                "markdownDescription": "**Supported values**\n\n- unsigned 32-bit native key code\n- string parameter placeholder such as `\"{{key}}\"`",
+                "oneOf": [
+                  { "$ref": "#/$defs/unsignedInteger", "description": "Supported value: unsigned 32-bit native key code.", "markdownDescription": "**Supported value**\n\nunsigned 32-bit native key code." },
+                  { "type": "string", "description": "Supported value: string parameter placeholder such as \"{{key}}\".", "markdownDescription": "**Supported value**\n\nstring parameter placeholder such as `\"{{key}}\"`." }
+                ]
+              },
+              "minItems": 1,
+              "description": "Supported value: non-empty array of unsigned 32-bit integer key codes or template placeholder strings (e.g. \"{{key}}\"), pressed in array order. Required; no default.",
+              "markdownDescription": "**Supported value**\n\nnon-empty array of unsigned 32-bit integer key codes or template placeholder strings (e.g. `\"{{key}}\"`), pressed in array order.\n\n**Required:** yes  \n**Default:** none."
+            }
+          },
+          "required": [
+            "type",
+            "key"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected ClickKey:** press native platform key codes in listed order."
+        },
+        {
+          "title": "Input text",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected InputText: type text into the focused control after parameter substitution.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "InputText",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: InputText, which types text after parameter substitution. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `InputText` — type text after parameter substitution.\n\n**Default:** `DoNothing`."
+            },
+            "input_text": {
+              "type": "string",
+              "description": "Supported value: string to type. Required; no default. {{parameter}} placeholders are substituted before execution.",
+              "markdownDescription": "**Supported value**\n\nstring to type.\n\n**Required:** yes  \n**Default:** none. {{parameter}} placeholders are substituted before execution."
+            }
+          },
+          "required": [
+            "type",
+            "input_text"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected InputText:** type text into the focused control after parameter substitution."
+        },
+        {
+          "title": "Stop pipeline",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected StopTask: stop the current pipeline successfully.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "StopTask",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: StopTask, which terminates the pipeline successfully. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `StopTask` — terminate the pipeline successfully.\n\n**Default:** `DoNothing`."
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected StopTask:** stop the current pipeline successfully."
+        },
+        {
+          "title": "Custom action",
+          "description": "Supported action types: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected Custom: invoke a registered action with action-specific JSON parameters.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "Custom",
+              "description": "Supported values for action type: DoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom. Selected: Custom, which invokes the registered action named by action. Default: DoNothing.",
+              "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Selected:** `Custom` — invoke the registered action named by `action`.\n\n**Default:** `DoNothing`."
+            },
+            "action": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Supported value: non-empty registered action-name string. Required; no default.",
+              "markdownDescription": "**Supported value**\n\nnon-empty registered action-name string.\n\n**Required:** yes  \n**Default:** none."
+            },
+            "param": {
+              "default": null,
+              "description": "Supported value: any JSON value accepted by the registered action. Default: null.",
+              "markdownDescription": "**Supported value**\n\nany JSON value accepted by the registered action.\n\n**Default:** null."
+            }
+          },
+          "required": [
+            "type",
+            "action"
+          ],
+          "markdownDescription": "**Supported action types**\n\nDoNothing | Wait | Click | LongPress | Swipe | Scroll | ClickKey | InputText | StopTask | Custom.\n\n**Selected Custom:** invoke a registered action with action-specific JSON parameters."
+        }
+      ],
+      "markdownDescription": "**Supported action types**\n\n- `DoNothing` — perform no input\n- `Wait` — pause before the next action\n- `Click` — click a target\n- `LongPress` — hold a target\n- `Swipe` — drag between targets\n- `Scroll` — emit wheel deltas\n- `ClickKey` — press key codes\n- `InputText` — type text\n- `StopTask` — stop the pipeline\n- `Custom` — invoke a registered action\n\n**Default action type:** `DoNothing`"
+    },
+    "parameter": {
+      "title": "Developer input parameter",
+      "description": "Supported value: object with type, key, label, and optional placeholder/default/options fields. Declares one Node Test input; its value is available through {{key}} placeholders.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "oneOf": [
+            {
+              "const": "text",
+              "description": "Supported values: text | password | number | dropdown | switch | color. Selected text: single-line visible text input.",
+              "markdownDescription": "**Supported values**\n\ntext | password | number | dropdown | switch | color.\n\n**Selected text:** single-line visible text input."
+            },
+            {
+              "const": "password",
+              "description": "Supported values: text | password | number | dropdown | switch | color. Selected password: single-line masked text input.",
+              "markdownDescription": "**Supported values**\n\ntext | password | number | dropdown | switch | color.\n\n**Selected password:** single-line masked text input."
+            },
+            {
+              "const": "number",
+              "description": "Supported values: text | password | number | dropdown | switch | color. Selected number: numeric input stored as a number.",
+              "markdownDescription": "**Supported values**\n\ntext | password | number | dropdown | switch | color.\n\n**Selected number:** numeric input stored as a number."
+            },
+            {
+              "const": "dropdown",
+              "description": "Supported values: text | password | number | dropdown | switch | color. Selected dropdown: select control populated from options.",
+              "markdownDescription": "**Supported values**\n\ntext | password | number | dropdown | switch | color.\n\n**Selected dropdown:** select control populated from options."
+            },
+            {
+              "const": "switch",
+              "description": "Supported values: text | password | number | dropdown | switch | color. Selected switch: boolean on/off control.",
+              "markdownDescription": "**Supported values**\n\ntext | password | number | dropdown | switch | color.\n\n**Selected switch:** boolean on/off control."
+            },
+            {
+              "const": "color",
+              "description": "Supported values: text | password | number | dropdown | switch | color. Selected color: color picker stored as a color string.",
+              "markdownDescription": "**Supported values**\n\ntext | password | number | dropdown | switch | color.\n\n**Selected color:** color picker stored as a color string."
+            }
+          ],
+          "description": "Supported values: \"text\" | \"password\" | \"number\" | \"dropdown\" | \"switch\" | \"color\". Required; no default. Selects the Node Test input control.",
+          "markdownDescription": "**Supported values**\n\n\"text\" | \"password\" | \"number\" | \"dropdown\" | \"switch\" | \"color\".\n\n**Required:** yes  \n**Default:** none.\n\nSelects the Node Test input control."
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Supported value: non-empty string used as the {{key}} placeholder. Required; no default.",
+          "markdownDescription": "**Supported value**\n\nnon-empty string used as the {{key}} placeholder.\n\n**Required:** yes  \n**Default:** none."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Supported value: non-empty human-readable label string. Required; no default.",
+          "markdownDescription": "**Supported value**\n\nnon-empty human-readable label string.\n\n**Required:** yes  \n**Default:** none."
+        },
+        "placeholder": {
+          "type": "string",
+          "default": "",
+          "description": "Supported value: string shown as a hint when the input is empty. Default: empty string.",
+          "markdownDescription": "**Supported value**\n\nstring shown as a hint when the input is empty.\n\n**Default:** empty string."
+        },
+        "default": {
+          "default": null,
+          "description": "Supported value: any JSON value, normally string, number, or boolean according to parameter type. Default: null.",
+          "markdownDescription": "**Supported value**\n\nany JSON value, normally string, number, or boolean according to parameter type.\n\n**Default:** null."
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Supported value: string for one selectable dropdown choice.",
+            "markdownDescription": "**Supported value**\n\nstring for one selectable dropdown choice."
+          },
+          "default": [],
+          "description": "Supported value: array of strings used as dropdown choices. Other control types ignore it. Default: empty array.",
+          "markdownDescription": "**Supported value**\n\narray of strings used as dropdown choices.\n\nOther control types ignore it.\n\n**Default:** empty array."
+        }
+      },
+      "required": [
+        "type",
+        "key",
+        "label"
+      ],
+      "markdownDescription": "**Supported value**\n\nobject with type, key, label, and optional placeholder/default/options fields.\n\nDeclares one Node Test input; its value is available through {{key}} placeholders."
+    },
+    "focusTemplate": {
+      "title": "Pipeline message template",
+      "description": "Supported values: content string or options object controlling message content, display channels, and optional trace intent.",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Supported value: message content string; equivalent to display log.",
+          "markdownDescription": "**Supported value**\n\nMessage content string; equivalent to `display: \"log\"`."
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Supported value: message template options object.",
+          "properties": {
+            "content": {
+              "type": "string",
+              "description": "Supported value: message content with placeholders such as {name}, {run_id}, {confidence}, {actions_fired}, and {error}.",
+              "markdownDescription": "**Supported value**\n\nMessage content with safe `{placeholder}` substitution."
+            },
+            "display": {
+              "default": "log",
+              "description": "Supported values: log, toast, notification, dialog, modal, a custom adapter name, or an array of those channels. Default: log.",
+              "oneOf": [
+                { "type": "string", "minLength": 1, "description": "Supported value: one display channel.", "markdownDescription": "**Supported value**\n\nOne display channel." },
+                { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "description": "Supported value: display channel name.", "markdownDescription": "**Supported value**\n\nDisplay channel name." }, "description": "Supported value: non-empty array of unique display channels.", "markdownDescription": "**Supported value**\n\nNon-empty array of unique display channels." }
+              ],
+              "markdownDescription": "**Supported values**\n\n`log` | `toast` | `notification` | `dialog` | `modal` | custom adapter name, or an array.\n\n**Default:** `log`."
+            },
+            "trace": {
+              "type": "boolean",
+              "description": "Supported values: true or false. Retained for future telemetry integration; it does not enable telemetry by itself.",
+              "markdownDescription": "**Supported values**\n\n`true` or `false`. Retained for future telemetry integration."
+            }
+          },
+          "markdownDescription": "**Supported value**\n\nMessage template options with `content`, `display`, and optional `trace`."
+        }
+      ],
+      "markdownDescription": "**Supported values**\n\nContent string or message options object."
+    },
+    "instanceConfig": {
+      "title": "Node instance configuration",
+      "description": "Supported value: instance configuration object mapping a pipeline instance to a template with optional overrides.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "node": {
+          "type": "string",
+          "description": "Supported value: required non-empty string reference to a node template defined in the nodes section. The template provides default recognition, actions, and timing settings.",
+          "markdownDescription": "**Supported value**\n\nrequired non-empty string reference to a node template defined in the `nodes` section.\n\nThe template provides default recognition, actions, and timing settings."
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter",
+            "description": "Supported value: Node Test parameter object.",
+            "markdownDescription": "**Supported value**\n\nNode Test parameter object."
+          },
+          "default": [],
+          "description": "Supported value: array of Node Test parameter objects. Replaces the template's params. Default: empty array.",
+          "markdownDescription": "**Supported value**\n\narray of Node Test parameter objects.\n\nReplaces the template's params.\n\n**Default:** empty array."
+        },
+        "param_values": {
+          "type": "object",
+          "description": "Supported value: object whose keys are parameter names and whose values are default parameter values. These values override the template's parameter defaults. Default: empty object.",
+          "default": {},
+          "markdownDescription": "**Supported value**\n\nobject whose keys are parameter names and whose values are default parameter values.\n\nThese values override the template's parameter defaults.\n\n**Default:** empty object."
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["Normal", "Entry", "Endpoint"],
+          "description": "Supported values: Normal | Entry | Endpoint. Override the template's structural node kind. Default: inherit from template.",
+          "markdownDescription": "**Supported values**\n\n- `Normal` — regular node\n- `Entry` — pipeline entry marker\n- `Endpoint` — successful terminal marker\n\nOverride the template's structural node kind.\n\n**Default:** inherit from template."
+        },
+        "desc": {
+          "type": "string",
+          "description": "Supported value: free-text description override. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\nFree-text description of what this node does.\n\n**Default:** inherit from template."
+        },
+        "timeout": {
+          "$ref": "#/$defs/milliseconds",
+          "description": "Supported value: non-negative integer milliseconds. Override the template's timeout. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer in milliseconds.\n\nOverride the template's timeout.\n\n**Default:** inherit from template."
+        },
+        "error_timeout": {
+          "$ref": "#/$defs/milliseconds",
+          "description": "Supported value: non-negative integer milliseconds. Override the template's error_timeout. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer in milliseconds.\n\nOverride the template's error_timeout.\n\n**Default:** inherit from template."
+        },
+        "rate_limit": {
+          "$ref": "#/$defs/milliseconds",
+          "description": "Supported value: non-negative integer milliseconds. Override the template's rate_limit. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer in milliseconds.\n\nOverride the template's rate_limit.\n\n**Default:** inherit from template."
+        },
+        "pre_delay": {
+          "$ref": "#/$defs/milliseconds",
+          "description": "Supported value: non-negative integer milliseconds. Override the template's pre_delay. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer in milliseconds.\n\nOverride the template's pre_delay.\n\n**Default:** inherit from template."
+        },
+        "pre_wait_freezes": { "$ref": "#/$defs/freezeWait", "description": "Supported value: freeze wait duration or options object. Override the template's pre-action wait.", "markdownDescription": "**Supported value**\n\nFreeze wait duration or options object. Overrides the template's pre-action wait." },
+        "post_delay": {
+          "$ref": "#/$defs/milliseconds",
+          "description": "Supported value: non-negative integer milliseconds. Override the template's post_delay. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer in milliseconds.\n\nOverride the template's post_delay.\n\n**Default:** inherit from template."
+        },
+        "post_wait_freezes": { "$ref": "#/$defs/freezeWait", "description": "Supported value: freeze wait duration or options object. Override the template's post-action wait.", "markdownDescription": "**Supported value**\n\nFreeze wait duration or options object. Overrides the template's post-action wait." },
+        "enabled": {
+          "type": "boolean",
+          "description": "Supported values: true | false. Override the template's enabled state. Default: inherit from template.",
+          "markdownDescription": "**Supported values**\n\ntrue | false.\n\nOverride the template's enabled state.\n\n**Default:** inherit from template."
+        },
+        "inverse": {
+          "type": "boolean",
+          "description": "Supported values: true | false. Override the template's inverse state. Default: inherit from template.",
+          "markdownDescription": "**Supported values**\n\ntrue | false.\n\nOverride the template's inverse state.\n\n**Default:** inherit from template."
+        },
+        "max_hit": {
+          "$ref": "#/$defs/unsignedInteger",
+          "description": "Supported value: integer from 0 through 4294967295. Override the template's max_hit. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\ninteger from 0 through 4294967295.\n\nOverride the template's max_hit.\n\n**Default:** inherit from template."
+        },
+        "repeat": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295,
+          "description": "Supported value: integer from 1 through 4294967295. Override the template's repeat count. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\ninteger from 1 through 4294967295.\n\nOverride the template's repeat count.\n\n**Default:** inherit from template."
+        },
+        "repeat_delay": {
+          "$ref": "#/$defs/milliseconds",
+          "description": "Supported value: non-negative integer milliseconds. Override the template's repeat_delay. Default: inherit from template.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer in milliseconds.\n\nOverride the template's repeat_delay.\n\n**Default:** inherit from template."
+        }
+      },
+      "required": ["node"],
+      "markdownDescription": "**Supported value**\n\ninstance configuration object mapping a pipeline instance to a template with optional overrides.\n\n**Required field:** `node` (reference to template in `nodes` section)"
+    },
+    "nodeFields": {
+      "type": "object",
+      "description": "Supported value: node metadata object containing kind, recognition, actions, parameters, target override, timing, repetition, and attachment fields.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["Normal", "Entry", "Endpoint"],
+          "default": "Normal",
+          "description": "Supported values: Normal | Entry | Endpoint. Entry starts a run; Endpoint completes it. Endpoint carries no recognition or actions and has no outgoing edges. Exactly one Entry and at least one Endpoint are required. Default: Normal.",
+          "markdownDescription": "**Supported values**\n\n- `Normal` — regular node\n- `Entry` — pipeline entry marker\n- `Endpoint` — successful terminal marker; no recognition, actions, or outgoing edges\n\nExactly one `Entry` and at least one `Endpoint` are required per pipeline.\n\n**Default:** `Normal`"
+        },
+        "recognition": {
+          "$ref": "#/$defs/recognition",
+          "default": {
+            "type": "DirectHit"
+          },
+          "description": "Supported value: recognition object with type DirectHit, TemplateMatch, OCR, ColorMatch, or Custom. Default recognition type: DirectHit; omitting recognition uses {\"type\":\"DirectHit\"}.",
+          "markdownDescription": "**Supported recognition types**\n\n`DirectHit` | `TemplateMatch` | `OCR` | `ColorMatch` | `Custom`\n\n**Default recognition type:** `DirectHit`  \nOmitting `recognition` uses `{ \"type\": \"DirectHit\" }`."
+        },
+        "desc": {
+          "type": "string",
+          "default": "",
+          "description": "Supported value: free-text description of what this node does. Display-only; the engine ignores it. Default: empty string.",
+          "markdownDescription": "**Supported value**\n\nFree-text description of what this node does.\n\nDisplay-only; the engine ignores it.\n\n**Default:** `\"\"`"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action",
+            "description": "Supported value: action object with type DoNothing, Click, LongPress, Swipe, Scroll, ClickKey, InputText, StopTask, or Custom.",
+            "markdownDescription": "**Supported value**\n\naction object with type DoNothing, Click, LongPress, Swipe, Scroll, ClickKey, InputText, StopTask, or Custom."
+          },
+          "default": [],
+          "description": "Supported value: array of action objects executed in order after recognition and pre_delay. Default action type when adding an action: DoNothing. Default actions array: empty, which performs no actions.",
+          "markdownDescription": "**Supported action types**\n\n`DoNothing` | `Wait` | `Click` | `LongPress` | `Swipe` | `Scroll` | `ClickKey` | `InputText` | `StopTask` | `Custom`\n\n**Default action type:** `DoNothing`  \n**Default actions array:** `[]` (perform no actions)"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter",
+            "description": "Supported value: Node Test parameter object.",
+            "markdownDescription": "**Supported value**\n\nNode Test parameter object."
+          },
+          "default": [],
+          "description": "Supported value: array of standalone Node Tester parameter objects. Pipeline runtime parameters belong in .pipeline.json. Default: empty array.",
+          "markdownDescription": "**Supported value**\n\narray of standalone Node Tester parameter objects. Pipeline runtime parameters belong in `.pipeline.json`.\n\n**Default:** empty array."
+        },
+        "target": {
+          "description": "Supported values: null | screen target object | window target object without window_size. Used only while this node runs. Default: null, which inherits the top-level target or reuses an active stream. It does not overwrite manual capture preferences.",
+          "default": null,
+          "oneOf": [
+            {
+              "allOf": [
+                { "$ref": "#/$defs/captureTarget" },
+                {
+                  "not": {
+                    "type": "object",
+                    "properties": { "window_size": true },
+                    "required": ["window_size"]
+                  }
+                }
+              ],
+              "description": "Supported values: null | screen target object | window target object without window_size. Selected object: override capture for this node; declare window_size only on the top-level target.",
+              "markdownDescription": "**Supported values**\n\nnull | screen target object | window target object without window_size.\n\n**Selected object:** override capture for this node; declare window_size only on the top-level target."
+            },
+            {
+              "type": "null",
+              "description": "Supported values: null | screen target object | window target object without window_size. Selected null: inherit the top-level target. Default: null.",
+              "markdownDescription": "**Supported values**\n\nnull | screen target object | window target object without window_size.\n\n**Selected null:** inherit the top-level target.\n\n**Default:** null."
+            }
+          ],
+          "markdownDescription": "**Supported values**\n\nnull | screen target object | window target object without window_size.\n\nUsed only while this node runs.\n\n**Default:** null, which inherits the top-level target or reuses an active stream.\n\nIt does not overwrite manual capture preferences."
+        },
+        "timeout": {
+          "$ref": "#/$defs/milliseconds",
+          "default": 20000,
+          "description": "Supported value: non-negative integer milliseconds. Quota shared by this node's children (n>=1): candidates are tried round-robin until this quota is exhausted, then the error edge fires. The timeout defined in a child node is the quota for its own children. Default: 20000 ms.",
+          "markdownDescription": "**Supported value**\n\nNon-negative integer in milliseconds.\n\nQuota shared by this node's children (`n>=1`): candidates are tried round-robin until this quota is exhausted, then the error edge fires.\n\n**Default:** `20000 ms`"
+        },
+        "error_timeout": {
+          "$ref": "#/$defs/milliseconds",
+          "default": 20000,
+          "description": "Supported value: non-negative integer milliseconds. Quota for executing this node's error target after the children quota expires; progress keeps showing on this (parent) node. Default: 20000 ms.",
+          "markdownDescription": "**Supported value**\n\nNon-negative integer in milliseconds.\n\nQuota for executing this node's error target after the children quota expires; progress keeps showing on this (parent) node.\n\n**Default:** `20000 ms`"
+        },
+        "rate_limit": {
+          "$ref": "#/$defs/milliseconds",
+          "default": 1000,
+          "description": "Supported value: non-negative integer milliseconds between recognition attempt starts. Each retry uses a fresh frame. Default: 1000.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer milliseconds between recognition attempt starts.\n\nEach retry uses a fresh frame.\n\n**Default:** 1000."
+        },
+        "pre_delay": {
+          "$ref": "#/$defs/milliseconds",
+          "default": 200,
+          "description": "Supported value: non-negative integer milliseconds after recognition and before the first action. Default: 200.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer milliseconds after recognition and before the first action.\n\n**Default:** 200."
+        },
+        "pre_wait_freezes": { "$ref": "#/$defs/freezeWait", "default": 0, "description": "Supported value: freeze wait duration or options object after recognition and before pre_delay/action. Default: 0 (disabled).", "markdownDescription": "**Supported value**\n\nFreeze wait duration or options object after recognition and before `pre_delay` and action. **Default:** 0 (disabled)." },
+        "post_delay": {
+          "$ref": "#/$defs/milliseconds",
+          "default": 200,
+          "description": "Supported value: non-negative integer milliseconds after actions finish; it also runs after an action error. Default: 200.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer milliseconds after actions finish; it also runs after an action error.\n\n**Default:** 200."
+        },
+        "post_wait_freezes": { "$ref": "#/$defs/freezeWait", "default": 0, "description": "Supported value: freeze wait duration or options object after dispatched actions and before post_delay. Default: 0 (disabled).", "markdownDescription": "**Supported value**\n\nFreeze wait duration or options object after dispatched actions and before `post_delay`. **Default:** 0 (disabled)." },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Supported values: true | false. A false node skips capture, recognition, and actions and follows its next edge. Default: true.",
+          "markdownDescription": "**Supported values**\n\ntrue | false. A false node skips capture, recognition, and actions and follows its next edge.\n\n**Default:** true."
+        },
+        "inverse": {
+          "type": "boolean",
+          "default": false,
+          "description": "Supported values: true | false. true inverts the recognition match result. Default: false.",
+          "markdownDescription": "**Supported values**\n\ntrue | false. true inverts the recognition match result.\n\n**Default:** false."
+        },
+        "max_hit": {
+          "$ref": "#/$defs/unsignedInteger",
+          "default": 4294967295,
+          "description": "Supported value: integer from 0 through 4294967295. Maximum successful executions per run; later visits skip to next. Default: 4294967295, effectively unlimited.",
+          "markdownDescription": "**Supported value**\n\ninteger from 0 through 4294967295.\n\nMaximum successful executions per run; later visits skip to next.\n\n**Default:** 4294967295, effectively unlimited."
+        },
+        "repeat": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295,
+          "default": 1,
+          "description": "Supported value: integer from 1 through 4294967295. Number of complete ordered action-list executions. Default: 1.",
+          "markdownDescription": "**Supported value**\n\ninteger from 1 through 4294967295.\n\nNumber of complete ordered action-list executions.\n\n**Default:** 1."
+        },
+        "repeat_delay": {
+          "$ref": "#/$defs/milliseconds",
+          "default": 0,
+          "description": "Supported value: non-negative integer milliseconds between complete action-list repetitions. Default: 0.",
+          "markdownDescription": "**Supported value**\n\nnon-negative integer milliseconds between complete action-list repetitions.\n\n**Default:** 0."
+        },
+        "attach": {
+          "default": null,
+          "description": "Supported value: any JSON value retained for application-specific use; the pipeline engine does not interpret it. Default: null.",
+          "markdownDescription": "**Supported value**\n\nany JSON value retained for application-specific use; the pipeline engine does not interpret it.\n\n**Default:** null."
+        },
+        "focus": {
+          "type": "object",
+          "default": {},
+          "description": "Supported value: object mapping pipeline lifecycle message types to message templates. Default: empty object.",
+          "additionalProperties": { "$ref": "#/$defs/focusTemplate" },
+          "markdownDescription": "**Supported value**\n\nMap from events such as `Node.Action.Succeeded` to message templates.\n\n**Default:** empty object."
+        }
+      },
+      "markdownDescription": "**Supported value**\n\nnode metadata object containing recognition, actions, target override, timing, repetition, and attachment fields."
+    },
+    "nodeMetadata": {
+      "title": "Pipeline node metadata",
+      "description": "Supported value: reusable pipeline node definition referenced by an adjacent instance mapping.",
+      "allOf": [{ "$ref": "#/$defs/nodeFields" }],
+      "unevaluatedProperties": false,
+      "markdownDescription": "**Supported value**\n\nreusable pipeline node definition referenced by an adjacent instance mapping."
+    }
+  }
+}
